@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg id="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" class="w-full h-auto drop-shadow-sm" aria-label="Logo Hosturjaén">
+                    <defs>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap');
+                            .font-main {
+                                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                                font-size: 200px;
+                                font-weight: 500;
+                                letter-spacing: -0.05em;
+                            }
+                            .font-sub {
+                                font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                                font-size: 22px;
+                                font-weight: 700;
+                                letter-spacing: 0.02em;
+                            }
+                            .color-dark-green { fill: #5b6b14; }
+                            .color-light-green { fill: #a8a101; }
+                        </style>
+                    </defs>
+
+                    <!-- Texto Principal: "Hosturjaén" -->
+                    <text x="15" y="190" class="font-main">
+                        <tspan class="color-dark-green">Hostur</tspan><tspan class="color-light-green" dx="12">jaén</tspan>
+                    </text>
+
+                    <!-- Textos Secundarios (Subtítulos) -->
+                    <text x="28" y="245" class="font-sub color-dark-green">ASOCIACIÓN EMPRESARIAL DE HOSTELERÍA</text>
+                    <text x="28" y="278" class="font-sub color-dark-green">Y TURISMO DE LA PROVINCIA DE JAÉN</text>
+                </svg>
