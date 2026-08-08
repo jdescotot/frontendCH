@@ -1,0 +1,10 @@
+{
+  "name": "Control Horario",
+  "short_name": "Control",
+  "description": "Control horario, tareas y gestión de equipos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08130f",
+  "theme_color": "#08130f",
+  "lang": "es"
+}

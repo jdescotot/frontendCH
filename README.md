@@ -1,50 +1,48 @@
-# React + TypeScript + Vite
+# Control Horario — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend inicial del login construido con React 18.3.1, TypeScript, Vite y Bootstrap 5.
 
-Currently, two official plugins are available:
+## Desarrollo local
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```powershell
+Copy-Item .env.example .env
+npm install
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+El backend debe estar disponible en `http://localhost:8080`, o configura otro destino en:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```env
+VITE_DEV_API_PROXY_TARGET=http://localhost:8080
 ```
+
+El backend debe tener:
+
+```env
+FRONTEND_ORIGIN=http://localhost:5173
+COOKIE_SECURE=false
+```
+
+## Comprobaciones
+
+```powershell
+npm run typecheck
+npm run build
+```
+
+## Producción en el mismo dominio
+
+Deja `VITE_API_BASE_URL` vacío. React solicitará `/api/v1/...` en el mismo dominio y el servidor web debe reenviar `/api` al backend Go.
+
+## Producción con dominios diferentes
+
+No basta con poner una URL completa en `VITE_API_BASE_URL`: el backend también necesita CORS con credenciales, cookies compatibles y una política de origen segura. Para este proyecto se recomienda un único dominio público.
+
+## Rutas
+
+- `/login`: inicio de sesión.
+- `/app`: decide si debe abrir el selector de empresa o el panel.
+- `/app/empresas`: selector para usuarios con varias empresas.
+- `/app/inicio`: pantalla provisional posterior al login.
+
+La sesión real permanece en una cookie `HttpOnly`; React nunca almacena el token de sesión.

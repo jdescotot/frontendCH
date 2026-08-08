@@ -1,22 +1,38 @@
-import React, { useState } from "react";
-import styles from './LoginPage.module.css';
+import { LoginForm } from "../components/LoginForm";
+import { LoginVisualPanel } from "../components/LoginVisualPanel";
+import { AppLogo } from "../../../shared/components/AppLogo";
 
-const LoginPage: React.FC = () =>{
-    const[usuario, setusuario] = useState('');
-    const[password, setPassword] = useState('');
+export function LoginPage() {
+  return (
+    <main className="login-page">
+      <div className="container-fluid p-0 min-vh-100">
+        <div className="row g-0 min-vh-100">
+          <div className="col-lg-7 col-xl-7">
+            <LoginVisualPanel />
+          </div>
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (usuario === 'admin' && password === '1234') {
-            alert('¡Login correcto! Conectando al sistema...');
-        } else {
-            alert('Usuario o contraseña incorrectos (Prueba con admin / 1234)');
-        }
-    };
+          <div className="col-12 col-lg-5 col-xl-5 login-form-column">
+            <div className="login-mobile-brand d-lg-none">
+              <AppLogo light />
+            </div>
 
-    return(
-        <div className="container mt-5">
-            <h2 className="mb-4 text-center">Control Horario</h2>
+            <section className="login-card" aria-labelledby="login-title">
+              <div className="login-card__heading">
+                <span className="login-card__kicker">ACCESO SEGURO</span>
+                <h2 id="login-title">Bienvenido de nuevo</h2>
+                <p>Accede para continuar con tu jornada.</p>
+              </div>
+
+              <LoginForm />
+
+              <footer className="login-card__footer">
+                <i className="bi bi-shield-lock" aria-hidden="true" />
+                Acceso seguro y protegido
+              </footer>
+            </section>
+          </div>
         </div>
-    );
-}; export default LoginPage;
+      </div>
+    </main>
+  );
+}

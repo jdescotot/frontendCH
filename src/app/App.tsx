@@ -1,27 +1,11 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { LoginPage } from '../features/auth/pages';
+import { RouterProvider } from "react-router-dom";
+import { AppProviders } from "./providers/AppProviders";
+import { router } from "./router";
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <LoginPage />,
-  },
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/fichajes',
-    element: <div className="container mt-5"><h3>Pantalla de Fichajes (Próximamente)</h3></div>,
-  },
-  {
-    path: '*',
-    element: <Navigate to="/" replace />,
-  }
-]);
-
-function App() {
-  return <RouterProvider router={router} />;
+export function App() {
+  return (
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
+  );
 }
-
-export default App;
