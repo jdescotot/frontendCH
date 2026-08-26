@@ -32,13 +32,21 @@ export function TasksPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!selectedMembership) return;
+    const companyId = selectedMembership?.companyId;
+
+    if (!companyId) {
+      setLoading(false);
+      return;
+    }
+
+    const activeCompanyId: string = companyId;
     let active = true;
+
     async function load() {
       setLoading(true);
       setError("");
       try {
-        const response = await workspaceApi.getTasks(selectedMembership.companyId);
+        const response = await workspaceApi.getTasks(activeCompanyId);
         if (!active) return;
         setItems(response.data.items);
         setPending(response.data.pending);
@@ -51,9 +59,10 @@ export function TasksPage() {
         if (active) setLoading(false);
       }
     }
+
     void load();
     return () => { active = false; };
-  }, [selectedMembership]);
+  }, [selectedMembership?.companyId]);
 
   const filteredItems = useMemo(
     () => filter === "ALL" ? items : items.filter((item) => item.status === filter),

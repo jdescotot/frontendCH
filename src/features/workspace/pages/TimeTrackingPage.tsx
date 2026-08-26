@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { ApiError } from "../../../shared/api/apiError";
 import { workspaceApi, type WorkspaceTimeEvent } from "../api/workspaceApi";
+import { MyClockCard } from "../components/MyClockCard";
 
 const eventCopy: Record<WorkspaceTimeEvent["eventType"], { label: string; icon: string; className: string }> = {
   CLOCK_IN: { label: "Entrada", icon: "bi-box-arrow-in-right", className: "is-in" },
@@ -22,15 +23,31 @@ export function TimeTrackingPage() {
   const [items, setItems] = useState<WorkspaceTimeEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [clockRevision, setClockRevision] = useState(0);
+
+  const canManage = useMemo(
+    () => selectedMembership?.roles.some((role) => role === "OWNER" || role === "MANAGER") ?? false,
+    [selectedMembership],
+  );
 
   useEffect(() => {
-    if (!selectedMembership) return;
+    const companyId = selectedMembership?.companyId;
+
+    if (!companyId) {
+      setLoading(false);
+      return;
+    }
+
+    const activeCompanyId: string = companyId;
     let active = true;
+
     async function load() {
       setLoading(true);
       setError("");
       try {
-        const response = await workspaceApi.getTimeEvents(selectedMembership.companyId, date);
+        const response = canManage
+          ? await workspaceApi.getTimeEvents(activeCompanyId, date)
+          : await workspaceApi.getMyTimeEvents(activeCompanyId, date);
         if (active) setItems(response.data.items);
       } catch (requestError) {
         if (!active) return;
@@ -39,9 +56,10 @@ export function TimeTrackingPage() {
         if (active) setLoading(false);
       }
     }
+
     void load();
     return () => { active = false; };
-  }, [selectedMembership, date]);
+  }, [selectedMembership?.companyId, canManage, date, clockRevision]);
 
   const employeeCount = useMemo(() => new Set(items.map((item) => item.membershipId)).size, [items]);
 
@@ -53,7 +71,11 @@ export function TimeTrackingPage() {
         <div>
           <span className="workspace-eyebrow">CONTROL HORARIO</span>
           <h1>Fichajes</h1>
-          <p>Una línea temporal clara de entradas, salidas y descansos. Los originales permanecen inmutables.</p>
+          <p>
+            {canManage
+              ? "Registra tu propia jornada y supervisa las entradas, salidas y descansos del equipo."
+              : "Registra tu jornada y consulta tus entradas, salidas y descansos sin alterar los originales."}
+          </p>
         </div>
         <label className="workspace-date-control">
           <span>Fecha</span>
@@ -61,9 +83,15 @@ export function TimeTrackingPage() {
         </label>
       </div>
 
+      <MyClockCard onChanged={() => setClockRevision((value) => value + 1)} />
+
       <div className="time-summary-grid">
         <article><span>Eventos</span><strong>{items.length}</strong><small>registrados en la fecha</small></article>
-        <article><span>Personas</span><strong>{employeeCount}</strong><small>con actividad registrada</small></article>
+        <article>
+          <span>{canManage ? "Personas" : "Actividad"}</span>
+          <strong>{canManage ? employeeCount : items.length > 0 ? 1 : 0}</strong>
+          <small>{canManage ? "con actividad registrada" : "jornada con registros"}</small>
+        </article>
         <article className="time-summary-grid__accent"><span>Auditoría</span><strong><i className="bi bi-shield-check" /></strong><small>eventos originales preservados</small></article>
       </div>
 
@@ -71,14 +99,14 @@ export function TimeTrackingPage() {
 
       <article className="workspace-list-card">
         <div className="owner-section-heading owner-section-heading--compact">
-          <div><span className="workspace-eyebrow">ACTIVIDAD</span><h2>Línea temporal</h2></div>
+          <div><span className="workspace-eyebrow">ACTIVIDAD</span><h2>{canManage ? "Línea temporal del equipo" : "Mi línea temporal"}</h2></div>
         </div>
         {loading ? (
           <div className="owner-loading-state"><span className="spinner-border spinner-border-sm" /> Cargando fichajes…</div>
         ) : items.length === 0 ? (
           <div className="workspace-empty-inline">
             <i className="bi bi-clock-history" />
-            <div><strong>No hay fichajes en esta fecha.</strong><span>Cuando el equipo registre actividad aparecerá aquí en orden cronológico.</span></div>
+            <div><strong>No hay fichajes en esta fecha.</strong><span>Cuando se registre actividad aparecerá aquí en orden cronológico.</span></div>
           </div>
         ) : (
           <div className="time-event-list">

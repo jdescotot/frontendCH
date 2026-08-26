@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { ApiError } from "../../../shared/api/apiError";
+import { MyClockCard } from "../../workspace/components/MyClockCard";
 import {
   workspaceApi,
   type WorkspaceEmployee,
@@ -38,26 +39,36 @@ export function DashboardPage() {
   const [employees, setEmployees] = useState<WorkspaceEmployee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [clockRevision, setClockRevision] = useState(0);
 
   const currentMembership = selectedMembership;
   const canManage = useMemo(
     () => currentMembership?.roles.some((role) => role === "OWNER" || role === "MANAGER") ?? false,
     [currentMembership],
   );
-
   useEffect(() => {
-    if (!currentMembership || !canManage) return;
+    const companyId = selectedMembership?.companyId;
+
+    if (!companyId || !canManage) {
+      setLoading(false);
+      return;
+    }
+
+    const activeCompanyId: string = companyId;
     let active = true;
 
     async function loadDashboard() {
       setLoading(true);
       setError("");
+
       try {
         const [overviewResponse, employeesResponse] = await Promise.all([
-          workspaceApi.getOverview(currentMembership.companyId),
-          workspaceApi.getEmployees(currentMembership.companyId),
+          workspaceApi.getOverview(activeCompanyId),
+          workspaceApi.getEmployees(activeCompanyId),
         ]);
+
         if (!active) return;
+
         setOverview(overviewResponse.data);
         setEmployees(employeesResponse.data.items);
       } catch (requestError) {
@@ -65,7 +76,7 @@ export function DashboardPage() {
         setError(
           requestError instanceof ApiError
             ? requestError.message
-            : "No se pudo cargar la supervisión del equipo.",
+            : "No se pudo cargar la actividad de la empresa.",
         );
       } finally {
         if (active) setLoading(false);
@@ -73,10 +84,8 @@ export function DashboardPage() {
     }
 
     void loadDashboard();
-    return () => {
-      active = false;
-    };
-  }, [currentMembership, canManage]);
+    return () => { active = false; };
+  }, [selectedMembership?.companyId, canManage, clockRevision]);
 
   if (!session || !currentMembership) return null;
 
@@ -94,14 +103,10 @@ export function DashboardPage() {
           <div>
             <span className="workspace-eyebrow">MI JORNADA</span>
             <h1>Hola, {displayName}</h1>
-            <p>Este espacio se adaptará al flujo de empleado en la siguiente fase.</p>
+            <p>Registra tu entrada, descansos y salida, y consulta el tiempo trabajado de hoy.</p>
           </div>
         </div>
-        <article className="workspace-empty-card">
-          <span className="workspace-empty-card__icon"><i className="bi bi-clock" /></span>
-          <h2>Vista de empleado preparada</h2>
-          <p>La siguiente iteración añadirá el botón de fichaje, turno de hoy y tareas personales.</p>
-        </article>
+        <MyClockCard />
       </section>
     );
   }
@@ -165,6 +170,8 @@ export function DashboardPage() {
           </article>
         </div>
       </div>
+
+      <MyClockCard onChanged={() => setClockRevision((value) => value + 1)} />
 
       {error && (
         <div className="workspace-alert" role="alert">

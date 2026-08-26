@@ -41,6 +41,81 @@ export interface WorkspaceTimeEvent {
   note: string | null;
 }
 
+
+export type MyClockState = "IDLE" | "WORKING" | "BREAK" | "INELIGIBLE";
+export type ClockEventType = "CLOCK_IN" | "CLOCK_OUT" | "BREAK_START" | "BREAK_END";
+
+export interface MyClockStatus {
+  eligible: boolean;
+  reason: string | null;
+  state: MyClockState;
+  companyName: string;
+  timeZone: string;
+  serverTime: string;
+  allowedEvents: ClockEventType[];
+  todayWorkedSeconds: number;
+  currentSession: {
+    id: string;
+    startedAt: string;
+    breakStartedAt: string | null;
+    workedSeconds: number;
+    breakSeconds: number;
+  } | null;
+  lastEvent: {
+    eventType: ClockEventType;
+    occurredAt: string;
+  } | null;
+  duplicate?: boolean;
+}
+
+interface MyClockResponse {
+  data: MyClockStatus;
+}
+
+
+export interface EmployeeInvitationInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  taxId?: string | null;
+  employeeNumber?: string | null;
+  jobTitle?: string | null;
+  professionalCategory?: string | null;
+  contractType?: string | null;
+  weeklyMinutes?: number | null;
+  startedOn: string;
+}
+
+export interface EmployeeInvitation {
+  invitationId: string;
+  invitedEmail: string;
+  employeeName: string;
+  companyName: string;
+  expiresAt: string;
+  activationUrl: string;
+  existingAccount: boolean;
+}
+
+export interface PendingEmployeeInvitation {
+  invitationId: string;
+  invitedEmail: string;
+  employeeName: string;
+  status: "PENDING" | "EXPIRED";
+  expiresAt: string;
+  createdAt: string;
+  existingAccount: boolean;
+}
+
+export interface InvitationDetails {
+  invitedEmail: string;
+  employeeName: string;
+  companyName: string;
+  status: "PENDING" | "EXPIRED" | "ACCEPTED" | "REVOKED";
+  expiresAt: string;
+  existingAccount: boolean;
+}
+
 export interface WorkspaceTask {
   assignmentId: string;
   title: string;
@@ -51,6 +126,29 @@ export interface WorkspaceTask {
   assigneeName: string;
   dueAt: string | null;
   requiresPhoto: boolean;
+}
+
+
+interface EmployeeInvitationResponse {
+  data: EmployeeInvitation;
+}
+
+interface EmployeeInvitationsResponse {
+  data: { items: PendingEmployeeInvitation[] };
+}
+
+interface InvitationDetailsResponse {
+  data: InvitationDetails;
+}
+
+interface AcceptInvitationResponse {
+  data: {
+    invitedEmail: string;
+    companyName: string;
+    membershipId: string;
+    employmentStatus: "PLANNED" | "ACTIVE";
+    status: "ACCEPTED";
+  };
 }
 
 interface OverviewResponse {
@@ -109,6 +207,82 @@ export const workspaceApi = {
   getTasks(companyId: string) {
     return apiRequest<TasksResponse>(
       `/api/v1/workspace/tasks?${companyQuery(companyId)}`,
+    );
+  },
+
+  getMyClockStatus(companyId: string) {
+    return apiRequest<MyClockResponse>(
+      `/api/v1/workspace/my-clock?${companyQuery(companyId)}`,
+    );
+  },
+
+  getMyTimeEvents(companyId: string, date?: string) {
+    return apiRequest<TimeEventsResponse>(
+      `/api/v1/workspace/my-clock/events?${companyQuery(companyId, date)}`,
+    );
+  },
+
+  recordMyClockEvent(
+    companyId: string,
+    csrfToken: string,
+    eventType: ClockEventType,
+    idempotencyKey: string,
+  ) {
+    return apiRequest<MyClockResponse>(
+      `/api/v1/workspace/my-clock/events?${companyQuery(companyId)}`,
+      {
+        method: "POST",
+        csrfToken,
+        body: { eventType, idempotencyKey },
+      },
+    );
+  },
+
+  getEmployeeInvitations(companyId: string) {
+    return apiRequest<EmployeeInvitationsResponse>(
+      `/api/v1/workspace/employee-invitations?${companyQuery(companyId)}`,
+    );
+  },
+
+  createEmployeeInvitation(
+    companyId: string,
+    csrfToken: string,
+    input: EmployeeInvitationInput,
+  ) {
+    return apiRequest<EmployeeInvitationResponse>(
+      `/api/v1/workspace/employee-invitations?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken, body: input },
+    );
+  },
+
+  renewEmployeeInvitation(
+    companyId: string,
+    csrfToken: string,
+    invitationId: string,
+  ) {
+    return apiRequest<EmployeeInvitationResponse>(
+      `/api/v1/workspace/employee-invitations/${encodeURIComponent(invitationId)}/renew?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken },
+    );
+  },
+
+  getInvitation(token: string) {
+    return apiRequest<InvitationDetailsResponse>(
+      `/api/v1/invitations/${encodeURIComponent(token)}`,
+    );
+  },
+
+  acceptInvitation(token: string, password: string) {
+    return apiRequest<AcceptInvitationResponse>(
+      `/api/v1/invitations/${encodeURIComponent(token)}/accept`,
+      { method: "POST", body: { password } },
+    );
+  },
+
+  acceptExistingInvitation(token: string, csrfToken: string) {
+    return apiRequest<AcceptInvitationResponse>(
+      `/api/v1/invitations/${encodeURIComponent(token)}/accept-existing`,
+      { method: "POST", csrfToken },
     );
   },
 };

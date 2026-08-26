@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError } from "../../../shared/api/apiError";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import {
@@ -12,6 +12,7 @@ import { PasswordField } from "./PasswordField";
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -33,7 +34,11 @@ export function LoginForm() {
     setGeneralError(null);
     try {
       await login(values);
-      navigate("/app", { replace: true });
+      const returnTo = searchParams.get("returnTo");
+      const safeReturnTo = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
+        ? returnTo
+        : "/app";
+      navigate(safeReturnTo, { replace: true });
     } catch (error) {
       setGeneralError(
         error instanceof ApiError
@@ -126,8 +131,8 @@ export function LoginForm() {
       <div className="login-invite-note">
         <i className="bi bi-envelope-check" aria-hidden="true" />
         <span>
-          ¿Has recibido una invitación? La activación de cuentas se incorporará
-          en la siguiente fase.
+          ¿Has recibido una invitación? Abre el enlace de activación que te ha
+          facilitado tu empresa.
         </span>
       </div>
     </form>

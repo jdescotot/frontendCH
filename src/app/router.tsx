@@ -10,12 +10,14 @@ import { EmployeesPage } from "../features/workspace/pages/EmployeesPage";
 import { TasksPage } from "../features/workspace/pages/TasksPage";
 import { TimeTrackingPage } from "../features/workspace/pages/TimeTrackingPage";
 import { WorkspaceSelectionPage } from "../features/workspace/pages/WorkspaceSelectionPage";
+import { InvitationActivationPage } from "../features/workspace/pages/InvitationActivationPage";
 import { AppEntry } from "./routes/AppEntry";
 import { PlatformAdminRoute } from "./routes/PlatformAdminRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { PublicOnlyRoute } from "./routes/PublicOnlyRoute";
 
 export const router = createBrowserRouter([
+  { path: "/activar-invitacion", element: <InvitationActivationPage /> },
   {
     element: <PublicOnlyRoute />,
     children: [{ path: "/login", element: <LoginPage /> }],

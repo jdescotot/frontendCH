@@ -26,7 +26,9 @@ export function PlatformShell({
   const { session, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (!session?.platformAccess) return null;
+  const platformAccess = session?.platformAccess;
+
+  if (!session || !platformAccess) return null;
 
   const currentSession = session;
 
@@ -34,7 +36,7 @@ export function PlatformShell({
     ? `${currentSession.person.firstName} ${currentSession.person.lastName}`.trim()
     : currentSession.user.email;
 
-  const roleName = currentSession.platformAccess.roleName;
+  const roleName = platformAccess.roleName;
 
   function changeWorkspace() {
     setMobileOpen(false);
