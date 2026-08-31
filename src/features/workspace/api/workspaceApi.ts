@@ -37,8 +37,26 @@ export interface WorkspaceTimeEvent {
   employeeName: string;
   eventType: "CLOCK_IN" | "CLOCK_OUT" | "BREAK_START" | "BREAK_END";
   occurredAt: string;
+  originalOccurredAt: string;
+  effectiveOccurredAt: string;
+  correctionCount: number;
+  latestCorrectionReason: string | null;
   source: string;
   note: string | null;
+}
+
+export interface TimeEventCorrection {
+  sequenceNo: number;
+  previousEffectiveOccurredAt: string;
+  correctedOccurredAt: string;
+  reason: string;
+  appliedBy: string;
+  appliedAt: string;
+}
+
+export interface CorrectTimeEventInput {
+  correctedLocalDateTime: string;
+  reason: string;
 }
 
 
@@ -170,6 +188,22 @@ interface TimeEventsResponse {
   };
 }
 
+
+interface TimeEventCorrectionsResponse {
+  data: { items: TimeEventCorrection[] };
+}
+
+interface CorrectTimeEventResponse {
+  data: {
+    eventId: string;
+    originalOccurredAt: string;
+    previousEffectiveOccurredAt: string;
+    effectiveOccurredAt: string;
+    correctionCount: number;
+    reason: string;
+  };
+}
+
 interface TasksResponse {
   data: {
     items: WorkspaceTask[];
@@ -201,6 +235,25 @@ export const workspaceApi = {
   getTimeEvents(companyId: string, date?: string) {
     return apiRequest<TimeEventsResponse>(
       `/api/v1/workspace/time-events?${companyQuery(companyId, date)}`,
+    );
+  },
+
+
+  getTimeEventCorrections(companyId: string, eventId: string) {
+    return apiRequest<TimeEventCorrectionsResponse>(
+      `/api/v1/workspace/time-events/${encodeURIComponent(eventId)}/corrections?${companyQuery(companyId)}`,
+    );
+  },
+
+  correctTimeEvent(
+    companyId: string,
+    csrfToken: string,
+    eventId: string,
+    input: CorrectTimeEventInput,
+  ) {
+    return apiRequest<CorrectTimeEventResponse>(
+      `/api/v1/workspace/time-events/${encodeURIComponent(eventId)}/corrections?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken, body: input },
     );
   },
 
