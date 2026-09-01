@@ -1,4 +1,4 @@
-import { apiRequest } from "../../../shared/api/httpClient";
+import { apiBinaryRequest, apiBlobRequest, apiRequest } from "../../../shared/api/httpClient";
 
 export type EmployeePresenceStatus =
   | "WORKING"
@@ -103,6 +103,7 @@ export interface EmployeeInvitationInput {
   contractType?: string | null;
   weeklyMinutes?: number | null;
   startedOn: string;
+  jobApplicationId?: string | null;
 }
 
 export interface EmployeeInvitation {
@@ -146,7 +147,17 @@ export interface WorkspaceTask {
   assigneeName: string;
   dueAt: string | null;
   requiresPhoto: boolean;
+  hasEvidence: boolean;
   workCenter: string | null;
+}
+
+export interface TaskCaptureSession {
+  captureId: string;
+  captureToken: string;
+  serverTime: string;
+  expiresAt: string;
+  maxBytes: number;
+  mimeTypes: string[];
 }
 
 export interface WorkCenter {
@@ -349,6 +360,7 @@ interface TasksResponse {
     inProgress: number;
     completed: number;
     rejected: number;
+    photoEvidenceAvailable: boolean;
   };
 }
 
@@ -471,6 +483,33 @@ export const workspaceApi = {
     return apiRequest<void>(
       `/api/v1/workspace/tasks/${encodeURIComponent(taskId)}?${companyQuery(companyId)}`,
       { method: "DELETE", csrfToken },
+    );
+  },
+
+  createTaskCaptureSession(companyId: string, csrfToken: string, assignmentId: string) {
+    return apiRequest<{ data: TaskCaptureSession }>(
+      `/api/v1/workspace/task-assignments/${encodeURIComponent(assignmentId)}/capture-sessions?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken, body: {} },
+    );
+  },
+
+  uploadTaskEvidence(
+    companyId: string,
+    csrfToken: string,
+    capture: TaskCaptureSession,
+    photo: Blob,
+    capturedAt: string,
+  ) {
+    return apiBinaryRequest<{ data: { id: string; status: string; reviewStatus: string } }>(
+      `/api/v1/workspace/task-captures/${encodeURIComponent(capture.captureId)}/evidence?${companyQuery(companyId)}`,
+      photo,
+      { csrfToken, headers: { "X-Capture-Token": capture.captureToken, "X-Captured-At": capturedAt } },
+    );
+  },
+
+  getTaskEvidence(companyId: string, assignmentId: string) {
+    return apiBlobRequest(
+      `/api/v1/workspace/task-assignments/${encodeURIComponent(assignmentId)}/evidence?${companyQuery(companyId)}`,
     );
   },
 

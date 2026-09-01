@@ -18,6 +18,7 @@ const managerNavItems = [
   { to: "/app/tareas", label: "Tareas", icon: "bi-check2-square" },
   { to: "/app/vacaciones", label: "Vacaciones", icon: "bi-sun" },
   { to: "/app/reportes", label: "Reportes", icon: "bi-bar-chart" },
+  { to: "/app/empleos", label: "Empleos", icon: "bi-briefcase" },
 ];
 
 const managerMobileNavItems = [

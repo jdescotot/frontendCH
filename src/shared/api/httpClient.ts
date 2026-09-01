@@ -14,6 +14,19 @@ function buildURL(path: string): string {
   return `${API_BASE_URL}${normalizedPath}`;
 }
 
+async function responseError(response: Response): Promise<ApiError> {
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json")
+    ? ((await response.json()) as ApiErrorPayload)
+    : null;
+  const fallback = response.status === 401
+    ? "La sesión no es válida o ha caducado."
+    : response.status === 403
+      ? "La solicitud no pudo validarse. Recarga la página e inténtalo de nuevo."
+      : "No pudimos completar la operación.";
+  return new ApiError(payload?.error?.message || fallback, response.status, payload?.error?.code || "request_failed");
+}
+
 export async function apiRequest<T>(
   path: string,
   options: ApiRequestOptions = {},
@@ -72,4 +85,34 @@ export async function apiRequest<T>(
   }
 
   return payload as T;
+}
+
+export async function apiBinaryRequest<T>(
+  path: string,
+  body: Blob,
+  options: { csrfToken: string; headers?: HeadersInit },
+): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set("Accept", "application/json");
+  headers.set("Content-Type", body.type || "application/octet-stream");
+  headers.set("X-CSRF-Token", options.csrfToken);
+  let response: Response;
+  try {
+    response = await fetch(buildURL(path), { method: "POST", body, headers, credentials: "include" });
+  } catch {
+    throw new ApiError("No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.");
+  }
+  if (!response.ok) throw await responseError(response);
+  return (await response.json()) as T;
+}
+
+export async function apiBlobRequest(path: string): Promise<Blob> {
+  let response: Response;
+  try {
+    response = await fetch(buildURL(path), { method: "GET", credentials: "include" });
+  } catch {
+    throw new ApiError("No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.");
+  }
+  if (!response.ok) throw await responseError(response);
+  return response.blob();
 }

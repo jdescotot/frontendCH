@@ -5,6 +5,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./shared/styles/tokens.css";
 import "./shared/styles/global.css";
 import "./shared/styles/login.css";
+import "./shared/styles/jobs.css";
 import "./shared/styles/app-shell.css";
 import "./shared/styles/workspace.css";
 import { App } from "./app/App";

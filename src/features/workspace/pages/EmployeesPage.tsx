@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { ApiError } from "../../../shared/api/apiError";
 import {
@@ -47,9 +47,11 @@ const emptyForm = {
   contractType: "",
   weeklyHours: "40",
   startedOn: todayValue(),
+  jobApplicationId: "",
 };
 
 export function EmployeesPage() {
+	const [searchParams, setSearchParams] = useSearchParams();
   const { session, selectedMembership } = useAuth();
   const [items, setItems] = useState<WorkspaceEmployee[]>([]);
   const [invitations, setInvitations] = useState<PendingEmployeeInvitation[]>([]);
@@ -64,6 +66,23 @@ export function EmployeesPage() {
   const [renewingId, setRenewingId] = useState<string | null>(null);
 
   const canManage = selectedMembership?.roles.some((role) => role === "OWNER" || role === "MANAGER") ?? false;
+
+  useEffect(() => {
+    const jobApplicationId = searchParams.get("jobApplicationId");
+    if (!canManage || !jobApplicationId) return;
+    setForm({
+      ...emptyForm,
+      jobApplicationId,
+      firstName: searchParams.get("firstName") ?? "",
+      lastName: searchParams.get("lastName") ?? "",
+      email: searchParams.get("email") ?? "",
+      phone: searchParams.get("phone") ?? "",
+      jobTitle: searchParams.get("jobTitle") ?? "",
+    });
+    setCreatedInvitation(null);
+    setShowForm(true);
+    setSearchParams({}, { replace: true });
+  }, [canManage, searchParams, setSearchParams]);
 
   useEffect(() => {
     const companyId = selectedMembership?.companyId;
@@ -147,6 +166,7 @@ export function EmployeesPage() {
           contractType: form.contractType.trim() || null,
           weeklyMinutes: weeklyHours === null ? null : Math.round(weeklyHours * 60),
           startedOn: form.startedOn,
+          jobApplicationId: form.jobApplicationId || null,
         },
       );
       setCreatedInvitation(response.data);
@@ -280,7 +300,7 @@ export function EmployeesPage() {
           <button className="employee-modal-backdrop" type="button" aria-label="Cerrar" onClick={() => setShowForm(false)} />
           <div className="employee-modal-card">
             <div className="employee-modal-card__header">
-              <div><span className="workspace-eyebrow">NUEVA INCORPORACIÓN</span><h2 id="employee-modal-title">Alta de empleado</h2></div>
+              <div><span className="workspace-eyebrow">NUEVA INCORPORACIÓN</span><h2 id="employee-modal-title">{form.jobApplicationId ? "Contratar candidato" : "Alta de empleado"}</h2></div>
               <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setShowForm(false)} />
             </div>
 
@@ -300,6 +320,7 @@ export function EmployeesPage() {
             ) : (
               <form onSubmit={submitEmployee}>
                 {formError && <div className="alert alert-danger py-2">{formError}</div>}
+                {form.jobApplicationId && <div className="alert alert-success py-2"><i className="bi bi-briefcase" /> Al crear esta alta, la candidatura quedará contratada y la oferta se cerrará cuando se cubran todas sus plazas.</div>}
                 <div className="row g-3">
                   <div className="col-md-6"><label className="form-label">Nombre *</label><input className="form-control" required maxLength={100} value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></div>
                   <div className="col-md-6"><label className="form-label">Apellidos *</label><input className="form-control" required maxLength={160} value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></div>

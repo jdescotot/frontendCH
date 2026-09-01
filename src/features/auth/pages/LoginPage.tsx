@@ -1,6 +1,7 @@
 import { LoginForm } from "../components/LoginForm";
 import { LoginVisualPanel } from "../components/LoginVisualPanel";
 import { AppLogo } from "../../../shared/components/AppLogo";
+import { Link } from "react-router-dom";
 
 export function LoginPage() {
   return (
@@ -24,6 +25,10 @@ export function LoginPage() {
               </div>
 
               <LoginForm />
+
+              <Link className="login-secondary-link d-flex justify-content-center mt-3" to="/empleos">
+                <i className="bi bi-briefcase me-2" /> Buscar empleo sin cuenta
+              </Link>
 
               <footer className="login-card__footer">
                 <i className="bi bi-shield-lock" aria-hidden="true" />

@@ -16,12 +16,19 @@ import { TasksPage } from "../features/workspace/pages/TasksPage";
 import { TimeTrackingPage } from "../features/workspace/pages/TimeTrackingPage";
 import { WorkspaceSelectionPage } from "../features/workspace/pages/WorkspaceSelectionPage";
 import { InvitationActivationPage } from "../features/workspace/pages/InvitationActivationPage";
+import { JobApplicationPage } from "../features/jobs/pages/JobApplicationPage";
+import { JobsManagementPage } from "../features/jobs/pages/JobsManagementPage";
+import { PublicJobDetailPage } from "../features/jobs/pages/PublicJobDetailPage";
+import { PublicJobsPage } from "../features/jobs/pages/PublicJobsPage";
 import { AppEntry } from "./routes/AppEntry";
 import { PlatformAdminRoute } from "./routes/PlatformAdminRoute";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { PublicOnlyRoute } from "./routes/PublicOnlyRoute";
 
 export const router = createBrowserRouter([
+  { path: "/empleos", element: <PublicJobsPage /> },
+  { path: "/empleos/:jobId", element: <PublicJobDetailPage /> },
+  { path: "/mi-candidatura/:applicationId", element: <JobApplicationPage /> },
   { path: "/activar-invitacion", element: <InvitationActivationPage /> },
   {
     element: <PublicOnlyRoute />,
@@ -45,6 +52,7 @@ export const router = createBrowserRouter([
           { path: "/app/tareas", element: <TasksPage /> },
           { path: "/app/vacaciones", element: <LeavePage /> },
           { path: "/app/reportes", element: <ReportsPage /> },
+          { path: "/app/empleos", element: <JobsManagementPage /> },
           { path: "/app/mas", element: <MorePage /> },
         ],
       },

@@ -5,6 +5,7 @@ const destinations = [
   { to: "/app/fichajes", icon: "bi-clock-history", title: "Fichajes", description: "Consulta jornadas, marcas originales y correcciones." },
   { to: "/app/vacaciones", icon: "bi-sun", title: "Vacaciones", description: "Solicita ausencias y revisa las peticiones del equipo." },
   { to: "/app/reportes", icon: "bi-bar-chart", title: "Reportes", description: "Analiza horas por fecha, empleado y centro de trabajo." },
+  { to: "/app/empleos", icon: "bi-briefcase", title: "Portal de empleo", description: "Publica ofertas, revisa candidaturas y conversa con candidatos." },
 ];
 
 export function MorePage() {
