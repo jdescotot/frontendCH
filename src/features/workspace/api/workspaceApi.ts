@@ -136,14 +136,152 @@ export interface InvitationDetails {
 
 export interface WorkspaceTask {
   assignmentId: string;
+  taskId: string;
+  membershipId: string;
   title: string;
   description: string | null;
   priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "REJECTED";
-  occurrenceStatus: string;
+  occurrenceStatus?: string;
   assigneeName: string;
   dueAt: string | null;
   requiresPhoto: boolean;
+  workCenter: string | null;
+}
+
+export interface WorkCenter {
+  id: string;
+  code: string;
+  name: string;
+  timeZone: string;
+}
+
+export interface WorkspaceShift {
+  id: string;
+  membershipId: string;
+  employeeName: string;
+  jobTitle: string | null;
+  workCenterId: string;
+  workCenterName: string;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  plannedBreakMinutes: number;
+  status: "DRAFT" | "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  notes: string | null;
+}
+
+export interface ShiftInput {
+  membershipId: string;
+  workCenterId: string;
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  plannedBreakMinutes: number;
+  notes?: string | null;
+}
+
+export interface EmployeeDetailEvent {
+  id: string;
+  eventType: ClockEventType;
+  originalOccurredAt: string;
+  effectiveOccurredAt: string;
+  corrected: boolean;
+}
+
+export interface EmployeeDetail {
+  membershipId: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  taxId: string | null;
+  phone: string | null;
+  jobTitle: string | null;
+  professionalCategory: string | null;
+  contractType: string | null;
+  employeeNumber: string | null;
+  weeklyMinutes: number | null;
+  membershipStatus: string;
+  employmentStatus: string;
+  startedOn: string;
+  endedOn: string | null;
+  roles: string[];
+  companyName: string;
+  workCenter: { id: string; name: string } | null;
+  summary: {
+    clockState: "IDLE" | "WORKING" | "BREAK";
+    workedTodaySeconds: number;
+    workedPeriodSeconds: number;
+    lastEvent: EmployeeDetailEvent | null;
+    todayShift: WorkspaceShift | null;
+    pendingTasks: number;
+    pendingLeaveRequests: number;
+  };
+  recentEvents: EmployeeDetailEvent[];
+}
+
+export interface CreateTaskInput {
+  title: string;
+  description?: string | null;
+  priority: WorkspaceTask["priority"];
+  dueAt?: string | null;
+  workCenterId?: string | null;
+  membershipIds: string[];
+  requiresPhoto: boolean;
+}
+
+export interface LeaveType {
+  id: string;
+  code: string;
+  name: string;
+  unit: "DAYS" | "HOURS" | "MINUTES";
+  requiresApproval: boolean;
+  paid: boolean;
+}
+
+export interface LeaveRequest {
+  id: string;
+  membershipId: string;
+  employeeName: string;
+  leaveTypeId: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  reason: string | null;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  requestedAt: string;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+}
+
+export interface AttendanceReport {
+  from: string;
+  to: string;
+  timeZone: string;
+  totals: {
+    workedSeconds: number;
+    breakSeconds: number;
+    employees: number;
+    sessions: number;
+    correctedEvents: number;
+  };
+  days: Array<{ date: string; workedSeconds: number; breakSeconds: number; employees: number }>;
+  items: Array<{
+    membershipId: string;
+    employeeName: string;
+    jobTitle: string;
+    workedSeconds: number;
+    breakSeconds: number;
+    sessions: number;
+  }>;
+  events: Array<{
+    id: string;
+    membershipId: string;
+    employeeName: string;
+    eventType: ClockEventType;
+    originalOccurredAt: string;
+    effectiveOccurredAt: string;
+    correctionReason: string | null;
+    corrected: boolean;
+  }>;
 }
 
 
@@ -210,8 +348,16 @@ interface TasksResponse {
     pending: number;
     inProgress: number;
     completed: number;
+    rejected: number;
   };
 }
+
+interface EmployeeDetailResponse { data: EmployeeDetail }
+interface WorkCentersResponse { data: { items: WorkCenter[] } }
+interface ShiftsResponse { data: { items: WorkspaceShift[]; from: string; to: string } }
+interface LeaveTypesResponse { data: { items: LeaveType[] } }
+interface LeaveRequestsResponse { data: { items: LeaveRequest[] } }
+interface AttendanceReportResponse { data: AttendanceReport }
 
 function companyQuery(companyId: string, date?: string): string {
   const params = new URLSearchParams({ companyId });
@@ -260,6 +406,114 @@ export const workspaceApi = {
   getTasks(companyId: string) {
     return apiRequest<TasksResponse>(
       `/api/v1/workspace/tasks?${companyQuery(companyId)}`,
+    );
+  },
+
+  getEmployee(companyId: string, membershipId: string) {
+    return apiRequest<EmployeeDetailResponse>(
+      `/api/v1/workspace/employees/${encodeURIComponent(membershipId)}?${companyQuery(companyId)}`,
+    );
+  },
+
+  getWorkCenters(companyId: string) {
+    return apiRequest<WorkCentersResponse>(
+      `/api/v1/workspace/work-centers?${companyQuery(companyId)}`,
+    );
+  },
+
+  getShifts(companyId: string, from: string, to: string) {
+    const params = new URLSearchParams({ companyId, from, to });
+    return apiRequest<ShiftsResponse>(`/api/v1/workspace/shifts?${params.toString()}`);
+  },
+
+  createShift(companyId: string, csrfToken: string, input: ShiftInput) {
+    return apiRequest<{ data: { id: string } }>(
+      `/api/v1/workspace/shifts?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken, body: input },
+    );
+  },
+
+  updateShift(companyId: string, csrfToken: string, shiftId: string, input: ShiftInput) {
+    return apiRequest<void>(
+      `/api/v1/workspace/shifts/${encodeURIComponent(shiftId)}?${companyQuery(companyId)}`,
+      { method: "PUT", csrfToken, body: input },
+    );
+  },
+
+  cancelShift(companyId: string, csrfToken: string, shiftId: string) {
+    return apiRequest<void>(
+      `/api/v1/workspace/shifts/${encodeURIComponent(shiftId)}?${companyQuery(companyId)}`,
+      { method: "DELETE", csrfToken },
+    );
+  },
+
+  createTask(companyId: string, csrfToken: string, input: CreateTaskInput) {
+    return apiRequest<{ data: { id: string } }>(
+      `/api/v1/workspace/tasks?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken, body: input },
+    );
+  },
+
+  updateTaskAssignment(
+    companyId: string,
+    csrfToken: string,
+    assignmentId: string,
+    status: WorkspaceTask["status"],
+    note?: string,
+  ) {
+    return apiRequest<void>(
+      `/api/v1/workspace/task-assignments/${encodeURIComponent(assignmentId)}?${companyQuery(companyId)}`,
+      { method: "PATCH", csrfToken, body: { status, note: note || null } },
+    );
+  },
+
+  cancelTask(companyId: string, csrfToken: string, taskId: string) {
+    return apiRequest<void>(
+      `/api/v1/workspace/tasks/${encodeURIComponent(taskId)}?${companyQuery(companyId)}`,
+      { method: "DELETE", csrfToken },
+    );
+  },
+
+  getLeaveTypes(companyId: string) {
+    return apiRequest<LeaveTypesResponse>(
+      `/api/v1/workspace/leave-types?${companyQuery(companyId)}`,
+    );
+  },
+
+  getLeaveRequests(companyId: string) {
+    return apiRequest<LeaveRequestsResponse>(
+      `/api/v1/workspace/leave-requests?${companyQuery(companyId)}`,
+    );
+  },
+
+  createLeaveRequest(
+    companyId: string,
+    csrfToken: string,
+    input: { leaveTypeId: string; startDate: string; endDate: string; reason?: string | null },
+  ) {
+    return apiRequest<{ data: { id: string; status: string } }>(
+      `/api/v1/workspace/leave-requests?${companyQuery(companyId)}`,
+      { method: "POST", csrfToken, body: input },
+    );
+  },
+
+  reviewLeaveRequest(
+    companyId: string,
+    csrfToken: string,
+    requestId: string,
+    status: "APPROVED" | "REJECTED",
+    note?: string,
+  ) {
+    return apiRequest<void>(
+      `/api/v1/workspace/leave-requests/${encodeURIComponent(requestId)}?${companyQuery(companyId)}`,
+      { method: "PATCH", csrfToken, body: { status, note: note || null } },
+    );
+  },
+
+  getAttendanceReport(companyId: string, from: string, to: string) {
+    const params = new URLSearchParams({ companyId, from, to });
+    return apiRequest<AttendanceReportResponse>(
+      `/api/v1/workspace/reports/attendance?${params.toString()}`,
     );
   },
 

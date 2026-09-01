@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { ApiError } from "../../../shared/api/apiError";
 import {
@@ -264,7 +265,7 @@ export function EmployeesPage() {
                         <div><small>Hoy</small><strong>{formatDuration(employee.workedSeconds)}</strong></div>
                         <div><small>Roles</small><strong>{employee.roles.join(" · ") || "Empleado"}</strong></div>
                       </div>
-                      <button type="button" className="employee-profile-card__action" disabled>Abrir ficha <i className="bi bi-arrow-right" /></button>
+                      <Link className="employee-profile-card__action" to={`/app/empleados/${employee.membershipId}`}>Abrir ficha <i className="bi bi-arrow-right" /></Link>
                     </article>
                   );
                 })}

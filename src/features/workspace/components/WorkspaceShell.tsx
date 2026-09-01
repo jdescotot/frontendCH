@@ -2,11 +2,30 @@ import { NavLink, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../app/providers/AuthProvider";
 import { AppLogo } from "../../../shared/components/AppLogo";
 
-const navItems = [
+const employeeNavItems = [
   { to: "/app/inicio", label: "Inicio", icon: "bi-grid-1x2" },
   { to: "/app/fichajes", label: "Fichajes", icon: "bi-clock-history" },
-  { to: "/app/empleados", label: "Empleados", icon: "bi-people" },
+  { to: "/app/turnos", label: "Turnos", icon: "bi-calendar-week" },
   { to: "/app/tareas", label: "Tareas", icon: "bi-check2-square" },
+  { to: "/app/vacaciones", label: "Vacaciones", icon: "bi-sun" },
+];
+
+const managerNavItems = [
+  { to: "/app/inicio", label: "Inicio", icon: "bi-grid-1x2" },
+  { to: "/app/empleados", label: "Empleados", icon: "bi-people" },
+  { to: "/app/fichajes", label: "Fichajes", icon: "bi-clock-history" },
+  { to: "/app/turnos", label: "Turnos", icon: "bi-calendar-week" },
+  { to: "/app/tareas", label: "Tareas", icon: "bi-check2-square" },
+  { to: "/app/vacaciones", label: "Vacaciones", icon: "bi-sun" },
+  { to: "/app/reportes", label: "Reportes", icon: "bi-bar-chart" },
+];
+
+const managerMobileNavItems = [
+  { to: "/app/inicio", label: "Inicio", icon: "bi-grid-1x2" },
+  { to: "/app/empleados", label: "Empleados", icon: "bi-people" },
+  { to: "/app/turnos", label: "Turnos", icon: "bi-calendar-week" },
+  { to: "/app/tareas", label: "Tareas", icon: "bi-check2-square" },
+  { to: "/app/mas", label: "Más", icon: "bi-three-dots" },
 ];
 
 function initials(name: string) {
@@ -29,6 +48,9 @@ export function WorkspaceShell() {
 
   const currentSession = session;
   const currentMembership = selectedMembership;
+  const canManage = currentMembership.roles.some((role) => role === "OWNER" || role === "MANAGER");
+  const desktopNavItems = canManage ? managerNavItems : employeeNavItems;
+  const mobileNavItems = canManage ? managerMobileNavItems : employeeNavItems;
   const displayName = currentSession.person
     ? `${currentSession.person.firstName} ${currentSession.person.lastName}`.trim()
     : currentSession.user.email;
@@ -49,8 +71,8 @@ export function WorkspaceShell() {
           </div>
         </div>
 
-        <nav className="workspace-desktop-nav d-none d-lg-flex" aria-label="Navegación principal">
-          {navItems.map((item) => (
+        <nav className="workspace-desktop-nav d-none d-xxl-flex" aria-label="Navegación principal">
+          {desktopNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -108,8 +130,8 @@ export function WorkspaceShell() {
         <Outlet />
       </main>
 
-      <nav className="workspace-mobile-nav d-lg-none" aria-label="Navegación móvil">
-        {navItems.map((item) => (
+      <nav className="workspace-mobile-nav d-xxl-none" aria-label="Navegación móvil">
+        {mobileNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

@@ -7,6 +7,11 @@ import { AdminDashboardPage } from "../features/platform/pages/AdminDashboardPag
 import { AdminCompaniesPage } from "../features/platform/pages/AdminCompaniesPage";
 import { WorkspaceShell } from "../features/workspace/components/WorkspaceShell";
 import { EmployeesPage } from "../features/workspace/pages/EmployeesPage";
+import { EmployeeDetailPage } from "../features/workspace/pages/EmployeeDetailPage";
+import { LeavePage } from "../features/workspace/pages/LeavePage";
+import { MorePage } from "../features/workspace/pages/MorePage";
+import { ReportsPage } from "../features/workspace/pages/ReportsPage";
+import { ShiftsPage } from "../features/workspace/pages/ShiftsPage";
 import { TasksPage } from "../features/workspace/pages/TasksPage";
 import { TimeTrackingPage } from "../features/workspace/pages/TimeTrackingPage";
 import { WorkspaceSelectionPage } from "../features/workspace/pages/WorkspaceSelectionPage";
@@ -35,7 +40,12 @@ export const router = createBrowserRouter([
           { path: "/app/inicio", element: <DashboardPage /> },
           { path: "/app/fichajes", element: <TimeTrackingPage /> },
           { path: "/app/empleados", element: <EmployeesPage /> },
+          { path: "/app/empleados/:membershipId", element: <EmployeeDetailPage /> },
+          { path: "/app/turnos", element: <ShiftsPage /> },
           { path: "/app/tareas", element: <TasksPage /> },
+          { path: "/app/vacaciones", element: <LeavePage /> },
+          { path: "/app/reportes", element: <ReportsPage /> },
+          { path: "/app/mas", element: <MorePage /> },
         ],
       },
       {
